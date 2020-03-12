@@ -18,18 +18,7 @@ def test_new_valid_order():
         "drinks": ["coke", "pepsi"]
     }
     response = app.test_client().post('/new_order', json=mock_data)
-    json_data = response.get_json()
-    price = PizzaParlour.sizes["small"]*4 + \
-            PizzaParlour.types["pepperoni"] + \
-            PizzaParlour.types["margherita"] + \
-            PizzaParlour.types["vegetarian"] + \
-            PizzaParlour.types["neapolitan"] +\
-            (PizzaParlour.toppings["olives"] + PizzaParlour.toppings["tomatoes"])*4 + \
-            PizzaParlour.drinks["coke"] + PizzaParlour.drinks["pepsi"]
-
     assert response.status_code == 200
-    assert json_data["price"] == price
-
 
 def test_invalid_size():
     # invalid size
