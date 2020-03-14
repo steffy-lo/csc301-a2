@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, abort
 import Pizza
+import uuid
 
 app = Flask("Assignment 2")
 
@@ -28,7 +29,7 @@ def new_order():
     #     "drinks": ["coke", "pepsi"]
     # }
 
-    orderNum = len(orders)
+    orderNum = uuid.uuid1().int >> 64
     order_response = {"orderNum": orderNum, "pizzas": [], "drinks": []}
     order = {"id": orderNum, "pizzas": [], "drinks": []}
 
@@ -66,10 +67,12 @@ def new_order():
 
 @app.route('/update_order/<int:orderID>', methods=["PATCH"])
 def update_order(orderID):
-    if orderID > len(orders):
-        abort(404)  # order will not be found
 
-    order = [order for order in orders if order['id'] == orderID][0]
+    find_order = [order for order in orders if order['id'] == orderID]
+    if len(find_order) == 0:
+        abort(404)  # invalid order id
+
+    order = find_order[0]
     request_body = request.get_json()
     # request body format example
     # {
@@ -100,6 +103,13 @@ def update_order(orderID):
                         updated_price += \
                             pizza_factory.get_type_price(toUpdate['type']) - pizza_factory.get_type_price(pizza.type)
                         pizza.type = toUpdate['type']
+                    if 'del_toppings' in toUpdate:
+                        for topping in toUpdate['del_toppings']:
+                            if topping not in pizza_factory.get_all_toppings() or topping not in pizza.toppings:
+                                print("invalid topping")
+                                abort(400)
+                            updated_price -= pizza_factory.get_topping_price(topping)
+                            pizza.remove_topping(topping)
                     if 'add_toppings' in toUpdate:
                         for topping in toUpdate['add_toppings']:
                             if topping not in pizza_factory.get_all_toppings():
@@ -107,19 +117,19 @@ def update_order(orderID):
                                 abort(400)
                             updated_price += pizza_factory.get_topping_price(topping)
                             pizza.add_topping(topping)
-                    if 'del_toppings' in toUpdate:
-                        for topping in toUpdate['del_toppings']:
-                            if topping not in pizza_factory.get_all_toppings():
-                                print("invalid topping")
-                                abort(400)
-                            updated_price -= pizza_factory.get_topping_price(topping)
-                            pizza.remove_topping(topping)
             if not found:
                 print("invalid item ID")
                 abort(400)  # itemID is invalid
             found = False
 
     if 'drinks' in request_body:
+        if 'remove' in request_body['drinks']:
+            for remove in request_body['drinks']['remove']:
+                if remove not in drinks_menu or remove not in order['drinks']:
+                    print("invalid drink")
+                    abort(400)
+                updated_price -= drinks_menu[remove]
+                order['drinks'].remove(remove)
         if 'add' in request_body['drinks']:
             for add in request_body['drinks']['add']:
                 if add not in drinks_menu:
@@ -127,21 +137,14 @@ def update_order(orderID):
                     abort(400)
                 updated_price += drinks_menu[add]
                 order['drinks'].append(add)
-        if 'add' in request_body['drinks']:
-            for remove in request_body['drinks']['remove']:
-                if remove not in drinks_menu:
-                    print("invalid drink")
-                    abort(400)
-                updated_price -= drinks_menu[remove]
-                order['drinks'].remove(remove)
 
     updated_order = {
         "orderNum": orderID,
-        "pizzas": [{"id": order.itemID,
-                    "size": order.size,
-                    "type": order.type,
-                    "toppings": order.toppings} for order in order["pizzas"]],
-        "drinks": order['drinks'],
+        "pizzas": [{"id": o.itemID,
+                    "size": o.size,
+                    "type": o.type,
+                    "toppings": o.toppings} for o in order["pizzas"]],
+        "drinks": order["drinks"],
         "price": updated_price
     }
     return jsonify(updated_order)
