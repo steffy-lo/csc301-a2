@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, make_response
 import Pizza
 import uuid
 
@@ -148,6 +148,25 @@ def update_order(orderID):
         "price": updated_price
     }
     return jsonify(updated_order)
+
+@app.route('/cancel_order/<int:orderID>', methods=["DELETE"])
+def cancel_order(orderID):
+
+    found_order = None
+    for order in orders:
+        if order['id'] == orderID:
+            found_order = order
+            break
+    
+    if not found_order:
+        res = make_response(jsonify({"error": "Collection not found"}), 404)
+        return res
+    
+    orders.remove(found_order)
+    res = make_response(jsonify({"item removed successfully"}), 204)
+    return res
+
+    
 
 # @app.route('/display_menu/<int:choice>', methods=["GET"])
 # def display_menu(choice):
