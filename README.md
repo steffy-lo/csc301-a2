@@ -13,7 +13,7 @@ Run unit tests with coverage by running `pytest --cov-report term --cov=. tests/
 
 ### Design Pattern
 
-The design pattern we chose to build this API is the builder pattern. We chose this pattern mainly because a pizza is an object that essentially involves the same steps to make, differing only in the details (i.e., the toppings). This effectively eliminates the telescopic constructor problem by collecting the many arguments one at a time. In addition, we add a class called the Pizza Factory which handles the creation of these pizza along with the support of adding new types of pizzas and toppings.
+The design pattern we chose to build this API is the builder pattern. We chose this pattern (over the factory method) mainly because a pizza is an object that essentially involves the same steps to make, differing only in the details (i.e., the toppings). This effectively eliminates the telescopic constructor problem by collecting the many arguments one at a time, and keeps the code much cleaner/maintainable. In addition, we add a class called the Pizza Factory which handles the creation of these pizza along with the support of adding new types of pizzas and toppings.
 
 ### Code Cohesion
 
