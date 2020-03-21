@@ -8,8 +8,8 @@ app = Flask("Assignment 2")
 orders = []
 pickups = {}
 in_house = {}
-uber_eats = []
-foodora = []
+uber_eats = {}
+foodora = {}
 pizza_parlour = Pizza.PizzaParlour()
 
 @app.route('/pizza')
@@ -105,41 +105,8 @@ def new_order():
     #     "drinks": ["coke", "pepsi"]
     # }
 
-    orderNum = uuid.uuid1().int >> 64
-    order_response = {"orderNum": orderNum, "pizzas": [], "drinks": []}
-    order = {"id": orderNum, "pizzas": [], "drinks": []}
-
-    total = 0
-    if 'pizzas' in order_request:
-        pizza_orders = order_request['pizzas']
-        for p in pizza_orders:
-            # check for validity of order
-            if p['size'] not in pizza_parlour.get_all_sizes() or p['type'] not in pizza_parlour.get_all_pizzas():
-                abort(400)  # bad request
-            o = pizza_parlour.create_pizza(p['size'], p['type'])
-            order['pizzas'].append(o)
-            order_response['pizzas'].append(o.itemID)
-            for topping in p['toppings']:
-                # check for validity of toppings
-                if topping not in pizza_parlour.get_all_toppings():
-                    abort(400)
-                o.add_topping(topping)
-            total += o.get_price(pizza_parlour)
-
-    if 'drinks' in order_request:
-        drink_orders = order_request['drinks']
-        for d in drink_orders:
-            if d not in pizza_parlour.get_all_drinks():
-                abort(400)
-            total += pizza_parlour.get_drink_price(d)
-            order['drinks'].append(d)
-            order_response['drinks'].append(d)
-
-    order_response['price'] = total
-    order['price'] = total
-    orders.append(order)
-
-    return jsonify(order_response)
+    order_res = make_order(order_request)
+    return jsonify(order_res)
 
 @app.route('/update_order/<int:orderID>', methods=["PATCH"])
 def update_order(orderID):
@@ -292,12 +259,54 @@ def deliver_in_house():
     req["delivery-date"] = str(date)
     return jsonify(req)
     
+@app.route('/delivery_uber', methods=["GET"])
+def delivery_uber():
+    req = request.get_json()
+    if req == {}:
+        abort(400)
+    order_request = req['order_details']
+    order_response = make_order(order_request)
+    print(order_response)
+    add_uber = {
+        'orderID': order_response['orderNum'], 
+        'address': req['address'],
+        'uberID': req['order_number']
+        }
+
+    date = datetime.date.today()
+    if str(date) in uber_eats:
+        uber_eats[str(date)].append(add_uber)
+    else:
+        uber_eats[str(date)] = [add_uber]
     
+    add_uber["delivery-date"] = str(date)
+    return jsonify(add_uber)
 
+@app.route('/delivery_foodora', methods=["GET"])
+def delivery_foodora():
+    req = request.get_json()
+    if req == {}:
+        abort(400)
+    order_request = req['order_details']
+    order_response = make_order(order_request)
 
+    add_foodora = {
+        'orderID': order_response['id'], 
+        'address': req['address'],
+        'uberID': req['order_number']
+        }
 
+    date = datetime.date.today()
+    if str(date) in uber_eats:
+        foodora[str(date)].append(add_foodora)
+    else:
+        foodora[str(date)] = [add_foodora]
+    
+    foodora["delivery-date"] = str(date)
+    add_foodora["delivery-date"] = str(date)
+    return jsonify(add_foodora)
 
-
+    
 @app.route('/display_menu', methods=["GET"])
 def display_menu():
 
@@ -378,6 +387,42 @@ def display_menu_item():
 
     item["price"] = price
     return jsonify(item)
+
+def make_order (order_request):
+    orderNum = uuid.uuid1().int >> 64
+    order_response = {"orderNum": orderNum, "pizzas": [], "drinks": []}
+    order = {"id": orderNum, "pizzas": [], "drinks": []}
+
+    total = 0
+    if 'pizzas' in order_request:
+        pizza_orders = order_request['pizzas']
+        for p in pizza_orders:
+            # check for validity of order
+            if p['size'] not in pizza_parlour.get_all_sizes() or p['type'] not in pizza_parlour.get_all_pizzas():
+                abort(400)  # bad request
+            o = pizza_parlour.create_pizza(p['size'], p['type'])
+            order['pizzas'].append(o)
+            order_response['pizzas'].append(o.itemID)
+            for topping in p['toppings']:
+                # check for validity of toppings
+                if topping not in pizza_parlour.get_all_toppings():
+                    abort(400)
+                o.add_topping(topping)
+            total += o.get_price(pizza_parlour)
+
+    if 'drinks' in order_request:
+        drink_orders = order_request['drinks']
+        for d in drink_orders:
+            if d not in pizza_parlour.get_all_drinks():
+                abort(400)
+            total += pizza_parlour.get_drink_price(d)
+            order['drinks'].append(d)
+            order_response['drinks'].append(d)
+
+    order_response['price'] = total
+    order['price'] = total
+    orders.append(order)
+    return order_response
 
 if __name__ == "__main__":
     app.run()
