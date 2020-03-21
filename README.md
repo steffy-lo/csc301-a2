@@ -22,3 +22,7 @@ In our API, the only objects are pizzas and therefore, there are technically no 
 ### Function Design
 
 In our pizza class, we have implemented dependency injection when calculating the price of a pizza, injecting an instance of a pizza factory. This is done as the price of a pizza will depend on given base prices of sizes, type, and topping prices which is determined through the pizza factory. This effectively increases code cohesion.
+
+## Code Craftmanship
+
+Steffy: Solely used PyCharm IDE to help with programming and formatting style
