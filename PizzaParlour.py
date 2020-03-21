@@ -7,6 +7,9 @@ app = Flask("Assignment 2")
 
 orders = []
 pickups = {}
+in_house = {}
+uber_eats = []
+foodora = []
 pizza_parlour = Pizza.PizzaParlour()
 
 @app.route('/pizza')
@@ -238,6 +241,7 @@ def cancel_order(orderID):
     orders.remove(found_order)
     return jsonify(res)
 
+#might have to change this... talk to steffy
 @app.route('/pickup_order/<int:orderID>', methods=["POST"])
 def pickup_order(orderID):
     found_order = None
@@ -257,6 +261,41 @@ def pickup_order(orderID):
     print (pickups)
     res = jsonify({str(date): found_order['id']})
     return res
+
+#might need to change this... talk to steffy
+@app.route('/deliver_in_house', methods=["POST"])
+def deliver_in_house():
+    #expect JSON: {"orderID": xxx, "address": xxx}
+    req = request.get_json()
+
+    if req == {}:
+        abort(400)
+    if 'orderID' not in req.keys() or 'address' not in req.keys():
+        abort(400)
+    
+    found_order = None
+    for order in orders:
+        if order['id'] == req['orderID']:
+            found_order = order
+            break
+
+    if not found_order:
+        print("this issue")
+        abort(404)
+
+    date = datetime.date.today()
+    if str(date) in pickups:
+        in_house[str(date)].append(req)
+    else:
+        in_house[str(date)] = [req]
+    
+    req["delivery-date"] = str(date)
+    return jsonify(req)
+    
+    
+
+
+
 
 
 @app.route('/display_menu', methods=["GET"])
