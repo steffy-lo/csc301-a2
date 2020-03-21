@@ -252,6 +252,11 @@ def test_del_valid_order():
     response = app.test_client().delete('/cancel_order/' + str(order_id))
     assert response.status_code == 200
 
+def test_del_invalid_order():
+
+    response = app.test_client().delete('/cancel_order/' + str(1234))
+    assert response.status_code == 404
+
 #=================================== HELPER METHODS ==================================================================
 
 
