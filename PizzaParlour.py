@@ -5,23 +5,94 @@ import uuid
 app = Flask("Assignment 2")
 
 orders = []
-pizza_factory = Pizza.PizzaFactory()
-drinks_menu = {'coke': 2,
-              'diet coke': 2,
-              'coke zero': 2,
-              'pepsi': 2,
-              'diet pepsi': 2,
-              'dr. pepper': 3.5,
-              'water': 1,
-              'juice': 4}
+pizza_parlour = Pizza.PizzaParlour()
 
 @app.route('/pizza')
 def welcome_pizza():
     return 'Welcome to Pizza Planet!'
 
+@app.route('/new_pizza', methods=['POST'])
+def new_pizza():
+    req = request.get_json()
+    # request body format example
+    # {
+    #     "name": "meat lovers",
+    #     "price": 6,
+    #     "ingredients": ["chicken", "beef"]
+    # }
+    if 'name' not in req or 'price' not in req or 'ingredients' not in req:
+        abort(400)
+
+    pizza_parlour.add_new_pizza(req["name"], req["price"], req["ingredients"])
+    return jsonify(req)
+
+@app.route('/set_pizza_price', methods=['PATCH'])
+def set_pizza_price():
+    req = request.get_json()
+    # request body format example
+    # {
+    #     "name": "meat lovers",
+    #     "price": 6,
+    # }
+    if 'name' not in req or 'price' not in req:
+        abort(400)
+
+    if req['name'] not in pizza_parlour.get_all_pizzas():
+        abort(400)
+
+    pizza_parlour.set_type_price(req["name"], req["price"])
+    return jsonify({req["name"]: pizza_parlour.get_type_price(req["name"])})
+
+@app.route('/set_size_price', methods=['PATCH'])
+def set_size_price():
+    req = request.get_json()
+    # request body format example
+    # {
+    #     "size": "small",
+    #     "price": 6,
+    # }
+    if 'size' not in req or 'price' not in req:
+        abort(400)
+
+    if req['size'] not in pizza_parlour.get_all_sizes():
+        abort(400)
+
+    pizza_parlour.set_size_price(req["size"], req["price"])
+    return jsonify({req["size"]: pizza_parlour.get_size_price(req["size"])})
+
+@app.route('/set_drink_price', methods=['PATCH'])
+@app.route('/new_drink', methods=['POST'])
+def set_drink_price():
+    req = request.get_json()
+    # request body format example
+    # {
+    #     "name": "fanta orange",
+    #     "price": 2
+    # }
+
+    if 'name' not in req or 'price' not in req:
+        abort(400)
+
+    pizza_parlour.set_drink_price(req["name"], req["price"])
+    return jsonify(req)
+
+@app.route('/set_topping_price', methods=['PATCH'])
+@app.route('/new_topping', methods=['POST'])
+def set_topping_price():
+    req = request.get_json()
+    # request body format example
+    # {
+    #     "name": "cheese",
+    #     "price": 2
+    # }
+    if 'name' not in req or 'price' not in req:
+        abort(400)
+
+    pizza_parlour.set_topping_price(req["name"], req["price"])
+    return jsonify(req)
+
 @app.route('/new_order', methods=['POST'])
 def new_order():
-    # request.args.get
     order_request = request.get_json()
     # request body format example
     # {
@@ -38,24 +109,24 @@ def new_order():
         pizza_orders = order_request['pizzas']
         for p in pizza_orders:
             # check for validity of order
-            if p['size'] not in pizza_factory.get_all_sizes() or p['type'] not in pizza_factory.get_all_pizzas():
+            if p['size'] not in pizza_parlour.get_all_sizes() or p['type'] not in pizza_parlour.get_all_pizzas():
                 abort(400)  # bad request
-            o = pizza_factory.create_pizza(p['size'], p['type'])
+            o = pizza_parlour.create_pizza(p['size'], p['type'])
             order['pizzas'].append(o)
             order_response['pizzas'].append(o.itemID)
             for topping in p['toppings']:
                 # check for validity of toppings
-                if topping not in pizza_factory.get_all_toppings():
+                if topping not in pizza_parlour.get_all_toppings():
                     abort(400)
                 o.add_topping(topping)
-            total += o.get_price(pizza_factory)
+            total += o.get_price(pizza_parlour)
 
     if 'drinks' in order_request:
         drink_orders = order_request['drinks']
         for d in drink_orders:
-            if d not in drinks_menu:
+            if d not in pizza_parlour.get_all_drinks():
                 abort(400)
-            total += drinks_menu[d]
+            total += pizza_parlour.get_drink_price(d)
             order['drinks'].append(d)
             order_response['drinks'].append(d)
 
@@ -76,7 +147,7 @@ def update_order(orderID):
     request_body = request.get_json()
     # request body format example
     # {
-    #     "pizzas": [{"itemID": "4a2f4998-7670-4dd5-a768-fe7f31d9158d", "size": "small", "type": "pepperoni", "add_toppings": ["mushrooms", "beef"], "del_toppings": []}],
+    #     "pizzas": [{"itemID": <str>, "size": "small", "type": "pepperoni", "add_toppings": ["mushrooms", "beef"], "del_toppings": []}],
     #     "drinks": {"add": ["water"], "remove": ["coke", "pepsi"]}
     # }
     found = False
@@ -90,32 +161,32 @@ def update_order(orderID):
                 if pizza.itemID == toUpdate['itemID']:
                     found = True
                     if 'size' in toUpdate:
-                        if toUpdate['size'] not in pizza_factory.get_all_sizes():
+                        if toUpdate['size'] not in pizza_parlour.get_all_sizes():
                             print("invalid size")
                             abort(400)  # bad request
                         updated_price += \
-                            pizza_factory.get_size_price(toUpdate['size']) - pizza_factory.get_size_price(pizza.size)
+                            pizza_parlour.get_size_price(toUpdate['size']) - pizza_parlour.get_size_price(pizza.size)
                         pizza.size = toUpdate['size']
                     if 'type' in toUpdate:
-                        if toUpdate['type'] not in pizza_factory.get_all_pizzas():
+                        if toUpdate['type'] not in pizza_parlour.get_all_pizzas():
                             print("invalid type")
                             abort(400)
                         updated_price += \
-                            pizza_factory.get_type_price(toUpdate['type']) - pizza_factory.get_type_price(pizza.type)
+                            pizza_parlour.get_type_price(toUpdate['type']) - pizza_parlour.get_type_price(pizza.type)
                         pizza.type = toUpdate['type']
                     if 'del_toppings' in toUpdate:
                         for topping in toUpdate['del_toppings']:
-                            if topping not in pizza_factory.get_all_toppings() or topping not in pizza.toppings:
+                            if topping not in pizza_parlour.get_all_toppings() or topping not in pizza.toppings:
                                 print("invalid topping")
                                 abort(400)
-                            updated_price -= pizza_factory.get_topping_price(topping)
+                            updated_price -= pizza_parlour.get_topping_price(topping)
                             pizza.remove_topping(topping)
                     if 'add_toppings' in toUpdate:
                         for topping in toUpdate['add_toppings']:
-                            if topping not in pizza_factory.get_all_toppings():
+                            if topping not in pizza_parlour.get_all_toppings():
                                 print("invalid topping")
                                 abort(400)
-                            updated_price += pizza_factory.get_topping_price(topping)
+                            updated_price += pizza_parlour.get_topping_price(topping)
                             pizza.add_topping(topping)
             if not found:
                 print("invalid item ID")
@@ -125,17 +196,17 @@ def update_order(orderID):
     if 'drinks' in request_body:
         if 'remove' in request_body['drinks']:
             for remove in request_body['drinks']['remove']:
-                if remove not in drinks_menu or remove not in order['drinks']:
+                if remove not in pizza_parlour.get_all_drinks() or remove not in order['drinks']:
                     print("invalid drink")
                     abort(400)
-                updated_price -= drinks_menu[remove]
+                updated_price -= pizza_parlour.get_drink_price(remove)
                 order['drinks'].remove(remove)
         if 'add' in request_body['drinks']:
             for add in request_body['drinks']['add']:
-                if add not in drinks_menu:
+                if add not in pizza_parlour.get_all_drinks():
                     print("invalid drink")
                     abort(400)
-                updated_price += drinks_menu[add]
+                updated_price += pizza_parlour.get_drink_price(add)
                 order['drinks'].append(add)
 
     updated_order = {
@@ -168,27 +239,32 @@ def cancel_order(orderID):
 @app.route('/display_menu', methods=["GET"])
 def display_menu():
 
-    all_sizes = pizza_factory.get_all_sizes()
-    all_toppings= pizza_factory.get_all_toppings()
-    all_types= pizza_factory.get_all_pizzas()
+    all_sizes = pizza_parlour.get_all_sizes()
+    all_toppings = pizza_parlour.get_all_toppings()
+    all_types = pizza_parlour.get_all_pizzas()
+    all_drinks = pizza_parlour.get_all_drinks()
 
     sizes = {}
     for size in all_sizes:
-        sizes[size] = pizza_factory.get_size_price(size)
+        sizes[size] = pizza_parlour.get_size_price(size)
 
     toppings = {}
     for topping in all_toppings:
-        toppings[topping] = pizza_factory.get_topping_price(topping)
+        toppings[topping] = pizza_parlour.get_topping_price(topping)
     
     types = {}
     for pizza in all_types:
-        types[pizza] = pizza_factory.get_type_price(pizza)
+        types[pizza] = pizza_parlour.get_type_price(pizza)
+
+    drinks = {}
+    for drink in all_drinks:
+        drinks[drink] = pizza_parlour.get_drink_price(drink)
 
     menu = {
         "size": sizes,
         "types": types,
         "toppings": toppings,
-        "drinks": drinks_menu
+        "drinks": drinks
         }
     return jsonify(menu)
 
@@ -203,14 +279,14 @@ def display_menu_item():
     item = request.get_json()
 
     price = 0
-    sizes = pizza_factory.get_all_sizes()
-    toppings = pizza_factory.get_all_toppings()
-    types = pizza_factory.get_all_pizzas()
+    sizes = pizza_parlour.get_all_sizes()
+    toppings = pizza_parlour.get_all_toppings()
+    types = pizza_parlour.get_all_pizzas()
 
     for category, value in item.items():
         if category == "drink":
-            if value in drinks_menu:
-                price += drinks_menu[value]
+            if value in pizza_parlour.get_all_drinks():
+                price += pizza_parlour.get_drink_price(value)
             else:
                 abort(400)
         elif category == "pizza":
@@ -219,18 +295,18 @@ def display_menu_item():
                     if stuff not in sizes:
                         print("invalid size")
                         abort(400)
-                    price += pizza_factory.get_size_price(stuff)
+                    price += pizza_parlour.get_size_price(stuff)
                 elif key == "type":
                     if stuff not in types:
                         print("invalid type")
                         abort(400)
-                    price += pizza_factory.get_type_price(stuff)
+                    price += pizza_parlour.get_type_price(stuff)
                 elif key == "toppings":
                     for topping in stuff:
                         if topping not in toppings:
                             print("invalid topping")
                             abort(400)
-                        price += pizza_factory.get_topping_price(topping)
+                        price += pizza_parlour.get_topping_price(topping)
                 else:
                     print("invalid key")
                     abort(400)
