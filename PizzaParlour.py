@@ -159,26 +159,86 @@ def cancel_order(orderID):
             break
     
     if not found_order:
-        abort(404)
-
-    res = {"orderID": found_order['id']}
-    orders.remove(found_order)
-    return jsonify(res)
-
+        res = make_response(jsonify({"error": "Order not found"}), 404)
+        return res
     
+    orders.remove(found_order)
+    res = make_response(jsonify({"item removed successfully"}), 200)
+    return res
 
-# @app.route('/display_menu/<int:choice>', methods=["GET"])
-# def display_menu(choice):
-#     # 0 for full menu, 1 for specific item
-#     menu = {}
-#     if choice == 0:
-#         menu = {
-#             'sizes': sizes,
-#             'types': types,
-#             'prices': prices,
-#             'toppings': toppings
-#         }
-#     return jsonify(menu)
+
+
+@app.route('/display_menu', methods=["GET"])
+def display_menu():
+
+    all_sizes = pizza_factory.get_all_sizes()
+    all_toppings= pizza_factory.get_all_toppings()
+    all_types= pizza_factory.get_all_pizzas()
+
+    sizes = {}
+    for size in all_sizes:
+        sizes[size] = pizza_factory.get_size_price(size)
+
+    toppings = {}
+    for topping in all_toppings:
+        toppings[topping] = pizza_factory.get_topping_price(topping)
+    
+    types = {}
+    for pizza in all_types:
+        types[pizza] = pizza_factory.get_type_price(pizza)
+
+    menu = {
+        "size": sizes,
+        "types": types,
+        "toppings": toppings,
+        "drinks": drinks_menu
+        }
+    return jsonify(menu)
+
+
+@app.route('/display_menu_item/', methods=["GET"])
+def display_menu_item():
+    # 0 for full menu, 1 for specific item
+    #{"pizza": {"size": "small"}}
+    #{"pizza": {"size": "small", "type": "veggie", "toppings": ["mushroom"], "drink": "coke"}}
+    # {"drink": "pepsi"}
+
+    #either request a pizza or a drink
+    item = request.get_json()
+
+    price = 0
+    sizes = pizza_factory.get_all_sizes()
+    toppings = pizza_factory.get_all_toppings()
+    types = pizza_factory.get_all_pizzas()
+
+    for category, value in item.items():
+        if category == "drink":
+            if value in drinks_menu:
+                price += drinks_menu[value]
+            else:
+                abort(400)
+        elif category == "pizza":
+            for key, stuff in value.items():
+                if key == "size":
+                    if stuff not in sizes:
+                        abort(400)
+                    price += pizza_factory.get_size_price(stuff)
+                elif key == "types":
+                    if stuff not in types:
+                        abort(400)
+                    price += pizza_factory.get_type_price(stuff)
+                elif key == "toppings":
+                    for topping in stuff:
+                        if topping not in toppings:
+                            abort(400)
+                        price += pizza_factory.get_topping_price(topping)
+                else:
+                    abort(400)
+        else:
+            abort(400)
+
+    item["price"] = price
+    return jsonify(item)
 
 if __name__ == "__main__":
     app.run()

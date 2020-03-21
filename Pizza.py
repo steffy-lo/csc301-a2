@@ -51,12 +51,18 @@ class PizzaFactory:
         self._types[type] = price
 
     def get_topping_price(self, topping):
+        if topping not in self._toppings:
+            return 0
         return self._toppings[topping]
 
     def get_size_price(self, size):
+        if size not in self._sizes:
+            return 0
         return self._sizes[size]
 
     def get_type_price(self, type):
+        if type not in self._types:
+            return 0
         return self._types[type]
 
 
