@@ -12,12 +12,12 @@ class PizzaFactory:
                              'margherita': ["tomatoes", "cheese", "basil"],
                              'vegetarian': ["tomatoes", "spinach", "onions"],
                              'neapolitan': ["neapeolitan sauce", "cheese", "basil"]}
-        self._toppings = {'olives': 0.1,
-                          'tomatoes': 0.1,
-                          'mushrooms': 0.1,
-                          'jalapenos': 0.1,
-                          'chicken': 0.1,
-                          'beef': 0.1,
+        self._toppings = {'olives': 1,
+                          'tomatoes': 1,
+                          'mushrooms': 1,
+                          'jalapenos': 1,
+                          'chicken': 2,
+                          'beef': 2,
                           'pepperoni': 0.1}
 
     def create_pizza(self, size, type):

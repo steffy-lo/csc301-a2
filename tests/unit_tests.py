@@ -285,8 +285,8 @@ def test_get_menu_item_valid_pizza():
     response = app.test_client().get('/display_menu_item', json=req)
     json_data = response.get_json()
 
-    assert json_data["price"] == 5.7
     assert response.status_code == 200
+    assert json_data["price"] == 8.5
 
 def test_get_menu_item_invalid_pizza_size():
     req = {
@@ -327,6 +327,17 @@ def test_invalid_menu_item_choice():
             "size": "tall"
             }
         }
+    response = app.test_client().get('display_menu_item', json=req)
+    assert response.status_code == 400
+
+def test_invalid_pizza_attribute():
+    req = {
+        "pizza": {
+            "crust": "small",
+            "type": "pepperoni",
+            "toppings": ["chicken", "mushrooms"]
+        }
+    }
     response = app.test_client().get('display_menu_item', json=req)
     assert response.status_code == 400
 

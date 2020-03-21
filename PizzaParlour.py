@@ -159,14 +159,11 @@ def cancel_order(orderID):
             break
     
     if not found_order:
-        res = make_response(jsonify({"error": "Order not found"}), 404)
-        return res
-    
+        abort(404)
+
+    res = {"orderID": found_order['id']}
     orders.remove(found_order)
-    res = make_response(jsonify({"item removed successfully"}), 200)
-    return res
-
-
+    return jsonify(res)
 
 @app.route('/display_menu', methods=["GET"])
 def display_menu():
@@ -220,20 +217,25 @@ def display_menu_item():
             for key, stuff in value.items():
                 if key == "size":
                     if stuff not in sizes:
+                        print("invalid size")
                         abort(400)
                     price += pizza_factory.get_size_price(stuff)
-                elif key == "types":
+                elif key == "type":
                     if stuff not in types:
+                        print("invalid type")
                         abort(400)
                     price += pizza_factory.get_type_price(stuff)
                 elif key == "toppings":
                     for topping in stuff:
                         if topping not in toppings:
+                            print("invalid topping")
                             abort(400)
                         price += pizza_factory.get_topping_price(topping)
                 else:
+                    print("invalid key")
                     abort(400)
         else:
+            print("invalid menu item")
             abort(400)
 
     item["price"] = price
