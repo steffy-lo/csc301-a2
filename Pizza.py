@@ -3,11 +3,11 @@ import uuid
 
 class PizzaFactory:
     def __init__(self):
-        self._sizes = {'small': 4, 'medium': 5.5, 'large': 7}
-        self._types = {'pepperoni': 0.5,
-                       'margherita': 1,
-                       'vegetarian': 0.2,
-                       'neapolitan': 1.5}
+        self._sizes = {'small': 1, 'medium': 2.5, 'large': 3}
+        self._types = {'pepperoni': 4.5,
+                       'margherita': 5,
+                       'vegetarian': 4,
+                       'neapolitan': 5.5}
         self._ingredients = {'pepperoni': ["cheese", "pepperoni"],
                              'margherita': ["tomatoes", "cheese", "basil"],
                              'vegetarian': ["tomatoes", "spinach", "onions"],
