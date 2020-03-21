@@ -257,6 +257,79 @@ def test_del_invalid_order():
     response = app.test_client().delete('/cancel_order/' + str(1234))
     assert response.status_code == 404
 
+def test_get_full_menu():
+    response = app.test_client().get('/display_menu')
+    assert response.status_code == 200
+
+def test_get_menu_item_valid_drink():
+    req = {"drink": "pepsi"}
+    response = app.test_client().get('/display_menu_item', json=req)
+    json_data = response.get_json()
+
+    assert json_data["price"] == 2
+    assert response.status_code == 200
+    
+def test_get_menu_item_invalid_drink():
+    req = {"drink": "pizza"}
+    response = app.test_client().get('/display_menu_item', json=req)
+    assert response.status_code == 400
+
+def test_get_menu_item_valid_pizza():
+    req = {
+        "pizza": {
+            "size": "small", 
+            "type": "pepperoni", 
+            "toppings": ["chicken", "mushrooms"]
+            }
+        }
+    response = app.test_client().get('/display_menu_item', json=req)
+    json_data = response.get_json()
+
+    assert json_data["price"] == 5.7
+    assert response.status_code == 200
+
+def test_get_menu_item_invalid_pizza_size():
+    req = {
+        "pizza": {
+            "size": "TALL", 
+            "type": "pepperoni", 
+            "toppings": ["chicken", "mushrooms"]
+            }
+        }
+    response = app.test_client().get('display_menu_item', json=req)
+    assert response.status_code == 400
+
+def test_menu_item_invalid_pizza_type():
+    req = {
+        "pizza": {
+            "size": "small", 
+            "type": "cheeto", 
+            "toppings": ["chicken", "mushrooms"]
+            }
+        }
+    response = app.test_client().get('display_menu_item', json=req)
+    assert response.status_code == 400
+
+def test_menu_item_invalid_toppings():
+    req = {
+        "pizza": {
+            "size": "small", 
+            "type": "pepperoni", 
+            "toppings": ["chick", "fajita"]
+            }
+        }
+    response = app.test_client().get('display_menu_item', json=req)
+    assert response.status_code == 400
+
+def test_invalid_menu_item_choice():
+    req = {
+        "dessert": {
+            "size": "tall"
+            }
+        }
+    response = app.test_client().get('display_menu_item', json=req)
+    assert response.status_code == 400
+
 #=================================== HELPER METHODS ==================================================================
 
 

@@ -196,9 +196,8 @@ def display_menu():
     return jsonify(menu)
 
 
-@app.route('/display_menu_item/', methods=["GET"])
+@app.route('/display_menu_item', methods=["GET"])
 def display_menu_item():
-    # 0 for full menu, 1 for specific item
     #{"pizza": {"size": "small"}}
     #{"pizza": {"size": "small", "type": "veggie", "toppings": ["mushroom"], "drink": "coke"}}
     # {"drink": "pepsi"}
