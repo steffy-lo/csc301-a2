@@ -1,10 +1,12 @@
 from flask import Flask, jsonify, request, abort, make_response
 import Pizza
 import uuid
+import datetime
 
 app = Flask("Assignment 2")
 
 orders = []
+pickups = {}
 pizza_parlour = Pizza.PizzaParlour()
 
 @app.route('/pizza')
@@ -235,6 +237,27 @@ def cancel_order(orderID):
     res = {"orderID": found_order['id']}
     orders.remove(found_order)
     return jsonify(res)
+
+@app.route('/pickup_order/<int:orderID>', methods=["POST"])
+def pickup_order(orderID):
+    found_order = None
+    for order in orders:
+        if order['id'] == orderID:
+            found_order = order
+            break
+
+    if not found_order:
+        abort(404)
+    date = datetime.date.today()
+    if str(date) in pickups:
+        pickups[str(date)].append(found_order)
+    else:
+        pickups[str(date)] = [found_order]
+    
+    print (pickups)
+    res = jsonify({str(date): found_order['id']})
+    return res
+
 
 @app.route('/display_menu', methods=["GET"])
 def display_menu():
