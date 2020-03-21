@@ -243,6 +243,15 @@ def test_invalid_del_drink_update_order():
     response = app.test_client().patch('/update_order/' + str(order["id"]), json=mock_data)
     assert response.status_code == 400
 
+def test_del_valid_order():
+    order = _create_mock_order()
+    order["drinks"].append("water")
+    order_id = order["id"]
+    PizzaParlour.orders.append(order)
+
+    response = app.test_client().delete('/cancel_order/' + str(order_id))
+    assert response.status_code == 200
+
 #=================================== HELPER METHODS ==================================================================
 
 

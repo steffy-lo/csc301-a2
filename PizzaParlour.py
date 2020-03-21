@@ -159,12 +159,11 @@ def cancel_order(orderID):
             break
     
     if not found_order:
-        res = make_response(jsonify({"error": "Collection not found"}), 404)
-        return res
-    
+        abort(404)
+
+    res = {"orderID": found_order['id']}
     orders.remove(found_order)
-    res = make_response(jsonify({"item removed successfully"}), 204)
-    return res
+    return jsonify(res)
 
     
 
