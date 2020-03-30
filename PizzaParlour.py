@@ -218,10 +218,10 @@ def pickup_order(orderID):
             break
 
     if not found_order:
-        abort(404)
+        abort(400)
     date = datetime.date.today()
-    if str(date) in pickups:
-        pickups[str(date)].append(found_order)
+    if str(date) in in_house:
+        [str(date)].append(found_order)
     else:
         pickups[str(date)] = [found_order]
     
@@ -233,6 +233,7 @@ def pickup_order(orderID):
 @app.route('/deliver_in_house', methods=["POST"])
 def deliver_in_house():
     #expect JSON: {"orderID": xxx, "address": xxx}
+    print("in_house beginning:", in_house)
     req = request.get_json()
 
     if req == {}:
@@ -247,11 +248,11 @@ def deliver_in_house():
             break
 
     if not found_order:
-        print("this issue")
-        abort(404)
+        abort(400)
 
     date = datetime.date.today()
-    if str(date) in pickups:
+    
+    if str(date) in in_house:
         in_house[str(date)].append(req)
     else:
         in_house[str(date)] = [req]
@@ -291,13 +292,13 @@ def delivery_foodora():
     order_response = make_order(order_request)
 
     add_foodora = {
-        'orderID': order_response['id'], 
+        'orderID': order_response['orderNum'], 
         'address': req['address'],
         'uberID': req['order_number']
         }
 
     date = datetime.date.today()
-    if str(date) in uber_eats:
+    if str(date) in foodora:
         foodora[str(date)].append(add_foodora)
     else:
         foodora[str(date)] = [add_foodora]
