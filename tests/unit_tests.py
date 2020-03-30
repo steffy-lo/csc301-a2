@@ -452,6 +452,89 @@ def test_invalid_pizza_attribute():
     response = app.test_client().get('display_menu_item', json=req)
     assert response.status_code == 400
 
+def test_valid_pickup_order():
+    order = _create_mock_order()
+    order["drinks"].append("water")
+    order_id = order["id"]
+    PizzaParlour.orders.append(order)
+    response = app.test_client().post('/pickup_order/' + str(order_id))
+    assert response.status_code == 200
+
+def test_invalid_pickup_order():
+    response = app.test_client().post('/pickup_order/1')
+    assert response.status_code == 400
+
+def test_valid_in_house_delivery():
+    order = _create_mock_order()
+    order["drinks"].append("water")
+    order_id = order["id"]
+    PizzaParlour.orders.append(order)
+    post_req = {"orderID": order_id, "address": "123 John Lane"}
+    response = app.test_client().post('/deliver_in_house', json=post_req)
+    assert response.status_code == 200
+
+def test_invalid_delivery_empty_post():
+    response = app.test_client().post('/deliver_in_house', json={})
+    assert response.status_code == 400
+
+def test_no_orderID_or_address():
+    response_order = app.test_client().post('/deliver_in_house', json={"address": "123 John Lane"})
+    response_address = app.test_client().post('deliver_in_house', json={"orderID": 1})
+    assert response_order.status_code == 400
+    assert response_address.status_code == 400
+
+def test_invalid_orderID():
+    post_req = {"orderID": 1, "address": "123 John Lane"}
+    response = app.test_client().post('/deliver_in_house', json=post_req)
+    assert response.status_code == 400
+
+def test_valid_uber_order():
+     mock_data = {
+        "pizzas": [
+            {"size": "small", "type": "pepperoni", "toppings": ["olives", "tomatoes"]},
+            {"size": "small", "type": "margherita", "toppings": ["olives", "tomatoes"]},
+            {"size": "small", "type": "vegetarian", "toppings": ["olives", "tomatoes"]},
+            {"size": "small", "type": "neapolitan", "toppings": ["olives", "tomatoes"]}
+                   ],
+        "drinks": ["coke", "pepsi"]
+    }
+     uber_req = {
+            'order_details': mock_data, 
+            'address': "123 John Lane",
+            'order_number': "UBER10001"
+        }
+     response = app.test_client().get('/delivery_uber', json=uber_req)
+     assert response.status_code == 200
+
+def test_empty_uber_request():
+    response = app.test_client().get('/delivery_uber', json={})
+    assert response.status_code == 400
+
+def test_valid_foodora_order():
+     mock_data = {
+        "pizzas": [
+            {"size": "small", "type": "pepperoni", "toppings": ["olives", "tomatoes"]},
+            {"size": "small", "type": "margherita", "toppings": ["olives", "tomatoes"]},
+            {"size": "small", "type": "vegetarian", "toppings": ["olives", "tomatoes"]},
+            {"size": "small", "type": "neapolitan", "toppings": ["olives", "tomatoes"]}
+                   ],
+        "drinks": ["coke", "pepsi"]
+    }
+     foodora = {
+            'order_details': mock_data, 
+            'address': "123 John Lane",
+            'order_number': "FOODORA10001"
+        }
+     response = app.test_client().get('/delivery_foodora', json=foodora)
+     assert response.status_code == 200
+
+def test_empty_foodora_request():
+    response = app.test_client().get('/delivery_foodora', json={})
+    assert response.status_code == 400
+    
+
+
+
 #=================================== HELPER METHODS ==================================================================
 
 
