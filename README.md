@@ -8,15 +8,15 @@ Run unit tests with coverage by running `pytest --cov-report term --cov=. tests/
 
 ### Feature 1: Cancel Order
 #### Main Functionality
-Driver: Bianca  Navigator: Steffy
+(Driver: Bianca  Navigator: Steffy)
 
 #### Testing
-Driver: Steffy  Navigator: Bianca
+(Driver: Steffy, Navigator: Bianca)
 It went pretty smoothly. We liked how the test methods were immediately working as expected. We just had to make sure a thorough test coverage.
 
 ### Feature 2: Asking for Menu
 #### Main Functionality
-Driver: Bianca  Navigator: Steffy
+(Driver: Bianca, Navigator: Steffy)
 It went quite well. We spent a fair amount of time discussing how to structure the data for displaying the menu. Once we've agreed on the best approach, it was quite smooth sailing with Steffy as the navigator catching any small errors while Bianca was driving the code. However, there were a lot of cases we had to cover, which became tiresome to do after a while.
 
 #### Testing (in 2 Parts)
