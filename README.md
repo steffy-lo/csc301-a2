@@ -75,6 +75,7 @@ Implementing this feature was very straightforward and we were able to do it eas
 **Driver:** Steffy
 
  **Navigator:** Bianca
+ 
 It went pretty smoothly. Through testing we ended up making another design decision regarding the error messages we should give for invalid input. Ultimately, we decided to go with a more simplistic approach and we wrote our tests to reflect that (added additional test cases instead). This can also be seen in the additional commit Steffy made when we were writing the tests for the features. We liked how the test methods were immediately working as expected. We just had to make sure a thorough test coverage.
 
 <img src="./images/del_testing_commit.jpg">
@@ -85,7 +86,7 @@ It went pretty smoothly. Through testing we ended up making another design decis
 
  **Navigator:** Steffy 
 
-It went quite well. We spent a fair amount of time discussing how to structure the data for displaying the menu. Once we agreed on the best approach, it was smooth sailing with Steffy as the navigator catching any small errors while Bianca acted as the driver. Overall, there was no conflict regarding the design and implementation of this feature. Comments and suggestions were 
+It went quite well. We spent a fair amount of time discussing how to structure the data for displaying the menu. Once we agreed on the best approach, it was smooth sailing with Steffy as the navigator catching any small errors while Bianca acted as the driver. Overall, there was no conflict regarding the design and implementation of this feature.
 
 <img src="./images/menu_feature_commit.jpg">
 
